@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lost & Found - CGC</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .form-container, .item-list {
+      background: #fff;
+      padding: 20px;
+      margin: 20px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      max-width: 600px;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .item {
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+    }
+    .item:last-child {
+      border-bottom: none;
+    }
+    .item h3 {
+      margin: 0 0 5px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: white;
+    }
+    .lost {
+      background: #e74c3c;
+    }
+    .found {
+      background: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lost & Found @ CGC</h1>
+
+  <!-- Form -->
+  <div class="form-container">
+    <h2>Report Item</h2>
+    <input type="text" id="itemName" placeholder="Item Name" required />
+    <select id="itemStatus">
+      <option value="Lost">Lost</option>
+      <option value="Found">Found</option>
+    </select>
+    <input type="text" id="itemLocation" placeholder="Location" required />
+    <input type="text" id="itemContact" placeholder="Contact Number" required />
+    <button onclick="addItem()">Add Item</button>
+  </div>
+
+  <!-- Item List -->
+  <div class="item-list">
+    <h2>Items</h2>
+    <div id="items"></div>
+  </div>
+
+  <script>
+    const API_URL = "http://localhost:5000/items";
+  
+    async function fetchItems() {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      displayItems(data);
+    }
+  
+    function displayItems(items) {
+      const itemsContainer = document.getElementById("items");
+      itemsContainer.innerHTML = "";
+      items.forEach((item) => {
+        const div = document.createElement("div");
+        div.classList.add("item");
+        div.innerHTML = `
+          <h3>${item.name} <span class="tag ${item.status.toLowerCase()}">${item.status}</span></h3>
+          <p><strong>Location:</strong> ${item.location}</p>
+          <p><strong>Contact:</strong> ${item.contact}</p>
+        `;
+        itemsContainer.appendChild(div);
+      });
+    }
+  
+    async function addItem() {
+      const name = document.getElementById("itemName").value;
+      const status = document.getElementById("itemStatus").value;
+      const location = document.getElementById("itemLocation").value;
+      const contact = document.getElementById("itemContact").value;
+  
+      if (name && location && contact) {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, status, location, contact }),
+        });
+        fetchItems();
+        document.getElementById("itemName").value = "";
+        document.getElementById("itemLocation").value = "";
+        document.getElementById("itemContact").value = "";
+      } else {
+        alert("Please fill all fields!");
+      }
+    }
+  
+    // Load items when page opens
+    fetchItems();
+  </script>
+</body>
+</html>
